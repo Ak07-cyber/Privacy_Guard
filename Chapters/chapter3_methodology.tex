@@ -1,0 +1,380 @@
+% ============================================================================
+% CHAPTER 3: METHODOLOGY
+% ============================================================================
+
+\chapter{METHODOLOGY}
+
+\section{SYSTEM OVERVIEW}
+
+PassiveGuard follows a modular three-tier architecture comprising a frontend SDK for data collection, a backend API for processing, and a machine learning model for classification. The system is designed for minimal latency, maximum privacy, and easy integration.
+
+\subsection{Design Principles}
+
+\begin{itemize}
+    \item \textbf{Privacy by Design:} Fingerprints are hashed before transmission; no PII is collected
+    \item \textbf{Passive Collection:} All data gathering occurs transparently without user interaction
+    \item \textbf{Defense in Depth:} Multiple signal categories provide layered detection
+    \item \textbf{Minimal Footprint:} Lightweight SDK with minimal performance impact
+    \item \textbf{Pluggable Architecture:} Easy integration with any web application
+\end{itemize}
+
+\subsection{Workflow Overview}
+
+The complete bot detection workflow:
+\begin{enumerate}
+    \item \textbf{Initialization:} SDK loads and begins passive data collection
+    \item \textbf{Environmental Collection:} Browser, device, and fingerprint data captured
+    \item \textbf{Behavioral Monitoring:} Mouse, keyboard, scroll, and timing patterns tracked
+    \item \textbf{Verification Request:} Collected data sent to backend API
+    \item \textbf{Feature Extraction:} Raw data transformed into 56 ML features
+    \item \textbf{Model Inference:} XGBoost classifier predicts human vs bot
+    \item \textbf{Result Generation:} Verification result with confidence score returned
+\end{enumerate}
+
+\section{TECHNOLOGY STACK}
+
+\subsection{Frontend: TypeScript SDK}
+
+TypeScript was selected for the frontend SDK due to:
+\begin{itemize}
+    \item Static typing for reliability and maintainability
+    \item Excellent IDE support and developer experience
+    \item Seamless JavaScript interoperability
+    \item Growing adoption in enterprise applications
+\end{itemize}
+
+The SDK provides:
+\begin{itemize}
+    \item Core \texttt{PassiveGuard} class for vanilla JavaScript
+    \item \texttt{usePassiveGuard} React hook for React applications
+    \item Event system for monitoring collection status
+    \item Configurable privacy modes
+\end{itemize}
+
+\subsection{Backend: FastAPI}
+
+FastAPI was chosen for the backend service due to:
+\begin{itemize}
+    \item Async support for high concurrency
+    \item Automatic OpenAPI documentation
+    \item Pydantic validation for request/response models
+    \item Native Python type hints
+    \item High performance (comparable to Node.js and Go)
+\end{itemize}
+
+\subsection{Machine Learning: XGBoost}
+
+XGBoost (eXtreme Gradient Boosting) was selected for classification:
+\begin{itemize}
+    \item State-of-the-art performance on tabular data
+    \item Fast training and inference (sub-50ms)
+    \item Built-in feature importance analysis
+    \item Robust handling of missing values
+    \item Regularization to prevent overfitting
+\end{itemize}
+
+\subsection{Supporting Technologies}
+
+\begin{table}[H]
+\centering
+\caption{Technology Stack Components}
+\label{tab:tech_stack}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Component} & \textbf{Technology} & \textbf{Purpose} \\
+\hline
+Frontend SDK & TypeScript 5.3+ & Type-safe data collection \\
+\hline
+React Integration & React 17+ & Hook-based integration \\
+\hline
+Backend API & FastAPI 0.109+ & REST API service \\
+\hline
+ML Framework & scikit-learn 1.4+ & Feature preprocessing \\
+\hline
+Classification & XGBoost 2.0+ & Bot detection model \\
+\hline
+Data Validation & Pydantic 2.5+ & Request/response schemas \\
+\hline
+Serialization & joblib 1.3+ & Model persistence \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{DATA COLLECTION METHODOLOGY}
+
+\subsection{Environmental Data Collection}
+
+Environmental data captures static characteristics of the browser and device:
+
+\begin{verbatim}
+Environmental Features:
+├── Browser Information
+│   ├── User Agent String
+│   ├── Platform
+│   ├── Language
+│   ├── Cookie Enabled
+│   └── Do Not Track
+├── Screen Properties
+│   ├── Width, Height
+│   ├── Color Depth
+│   ├── Pixel Ratio
+│   └── Orientation
+├── Hardware Signals
+│   ├── Device Memory
+│   ├── Hardware Concurrency (CPU cores)
+│   └── Max Touch Points
+├── Feature Detection
+│   ├── WebGL Support
+│   ├── WebRTC Support
+│   ├── Canvas Support
+│   └── Audio API Support
+└── Fingerprints (Hashed)
+    ├── Canvas Fingerprint
+    ├── WebGL Fingerprint
+    └── Audio Fingerprint
+\end{verbatim}
+
+\subsection{Behavioral Data Collection}
+
+Behavioral data captures dynamic user interaction patterns:
+
+\subsubsection{Mouse Movement Analysis}
+
+Mouse movements are captured at 60Hz and analyzed for:
+\begin{itemize}
+    \item \textbf{Velocity Statistics:} Mean, standard deviation, maximum velocity
+    \item \textbf{Trajectory Analysis:} Straight-line ratio, curvature
+    \item \textbf{Direction Changes:} Frequency of direction reversals
+    \item \textbf{Pause Patterns:} Number and duration of pauses
+    \item \textbf{Jitter Score:} High-frequency movement noise
+\end{itemize}
+
+The velocity between consecutive points is calculated as:
+
+$$v_i = \frac{\sqrt{(x_{i+1} - x_i)^2 + (y_{i+1} - y_i)^2}}{t_{i+1} - t_i}$$
+
+\subsubsection{Keyboard Pattern Analysis}
+
+Keyboard interactions are analyzed for:
+\begin{itemize}
+    \item \textbf{Dwell Time:} Duration of key press (key down to key up)
+    \item \textbf{Flight Time:} Interval between consecutive key presses
+    \item \textbf{Typing Speed:} Characters per minute
+    \item \textbf{Error Rate:} Backspace frequency
+    \item \textbf{Rhythm Consistency:} Standard deviation of inter-key intervals
+\end{itemize}
+
+\subsubsection{Scroll Behavior Analysis}
+
+Scroll events are analyzed for:
+\begin{itemize}
+    \item \textbf{Total Scroll Distance:} Cumulative pixels scrolled
+    \item \textbf{Scroll Velocity:} Speed of scrolling
+    \item \textbf{Smoothness:} Consistency of scroll increments
+    \item \textbf{Direction Changes:} Frequency of scroll direction reversals
+\end{itemize}
+
+Scroll smoothness is calculated as:
+
+$$\text{Smoothness} = 1 - \frac{\sigma(\Delta s)}{\mu(\Delta s)}$$
+
+where $\Delta s$ represents scroll increments between events.
+
+\subsubsection{Timing Analysis}
+
+Temporal patterns provide additional signals:
+\begin{itemize}
+    \item \textbf{Time to First Interaction:} Delay before first user action
+    \item \textbf{Total Interaction Time:} Duration of active engagement
+    \item \textbf{Idle Periods:} Gaps between interactions
+    \item \textbf{Interaction Gaps:} Distribution of inter-action intervals
+\end{itemize}
+
+\section{FEATURE ENGINEERING}
+
+\subsection{Feature Vector Construction}
+
+The raw collected data is transformed into a 56-dimensional feature vector:
+
+\begin{table}[H]
+\centering
+\caption{Feature Categories}
+\label{tab:features}
+\begin{tabular}{|l|c|l|}
+\hline
+\textbf{Category} & \textbf{Count} & \textbf{Examples} \\
+\hline
+Environmental & 18 & Screen ratio, CPU cores, memory \\
+\hline
+Mouse Movement & 12 & Velocity mean/std, direction changes \\
+\hline
+Keyboard Patterns & 8 & Dwell time, flight time, speed \\
+\hline
+Scroll Behavior & 6 & Smoothness, velocity, distance \\
+\hline
+Timing & 8 & First interaction, total time, gaps \\
+\hline
+Fingerprints & 4 & Canvas, WebGL, audio (binary presence) \\
+\hline
+\textbf{Total} & \textbf{56} & \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Feature Normalization}
+
+Numerical features are normalized using StandardScaler:
+
+$$x_{normalized} = \frac{x - \mu}{\sigma}$$
+
+where $\mu$ is the feature mean and $\sigma$ is the standard deviation from training data.
+
+\subsection{Bot Indicator Features}
+
+Specific features indicate potential bot characteristics:
+\begin{itemize}
+    \item \textbf{WebDriver Detection:} Presence of \texttt{navigator.webdriver} flag
+    \item \textbf{Automation Flags:} Headless browser indicators
+    \item \textbf{Plugin Anomalies:} Missing or unusual plugin configurations
+    \item \textbf{Zero Interaction:} No mouse/keyboard events captured
+\end{itemize}
+
+\section{MACHINE LEARNING MODEL}
+
+\subsection{XGBoost Classifier}
+
+XGBoost implements gradient boosted decision trees with the following objective function:
+
+$$\mathcal{L}^{(t)} = \sum_{i=1}^{n} l(y_i, \hat{y}_i^{(t-1)} + f_t(x_i)) + \Omega(f_t)$$
+
+where $f_t$ is the tree added at iteration $t$, and $\Omega$ is the regularization term:
+
+$$\Omega(f) = \gamma T + \frac{1}{2}\lambda \sum_{j=1}^{T} w_j^2$$
+
+where $T$ is the number of leaves and $w_j$ are leaf weights.
+
+\subsection{Model Hyperparameters}
+
+\begin{table}[H]
+\centering
+\caption{XGBoost Hyperparameters}
+\label{tab:hyperparams}
+\begin{tabular}{|l|c|l|}
+\hline
+\textbf{Parameter} & \textbf{Value} & \textbf{Purpose} \\
+\hline
+n\_estimators & 100 & Number of boosting rounds \\
+\hline
+max\_depth & 6 & Maximum tree depth \\
+\hline
+learning\_rate & 0.1 & Step size shrinkage \\
+\hline
+subsample & 0.8 & Row sampling ratio \\
+\hline
+colsample\_bytree & 0.8 & Column sampling ratio \\
+\hline
+min\_child\_weight & 1 & Minimum leaf weight \\
+\hline
+reg\_alpha & 0 & L1 regularization \\
+\hline
+reg\_lambda & 1 & L2 regularization \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Training Procedure}
+
+The model training procedure:
+\begin{enumerate}
+    \item Generate synthetic training data simulating human and bot behaviors
+    \item Split data into training (80\%) and validation (20\%) sets
+    \item Train XGBoost with early stopping on validation loss
+    \item Evaluate using cross-validation (5-fold)
+    \item Export trained model using joblib serialization
+\end{enumerate}
+
+\subsection{Prediction Scoring}
+
+The model outputs a probability score $P(\text{human}|x) \in [0, 1]$. The verification decision follows:
+
+$$\text{Decision} = \begin{cases} 
+\text{HUMAN} & \text{if } P(\text{human}|x) \geq 0.7 \\
+\text{SUSPICIOUS} & \text{if } 0.3 \leq P(\text{human}|x) < 0.7 \\
+\text{BOT} & \text{if } P(\text{human}|x) < 0.3
+\end{cases}$$
+
+\section{API DESIGN}
+
+\subsection{Verification Endpoint}
+
+The primary verification endpoint accepts collected data and returns results:
+
+\begin{verbatim}
+POST /api/v1/verify
+Content-Type: application/json
+
+Request:
+{
+  "siteKey": "site_xxx",
+  "environmental": { ... },
+  "behavioral": { ... },
+  "requestId": "pg_xxx",
+  "timestamp": 1706620800000
+}
+
+Response:
+{
+  "isHuman": true,
+  "confidence": 0.94,
+  "riskScore": 0.12,
+  "token": "eyJhbGc...",
+  "challengeRequired": false
+}
+\end{verbatim}
+
+\subsection{Token Validation}
+
+Verification tokens can be validated server-side:
+
+\begin{verbatim}
+POST /api/v1/validate
+Content-Type: application/json
+
+Request:
+{
+  "token": "eyJhbGc...",
+  "siteKey": "site_xxx"
+}
+
+Response:
+{
+  "valid": true,
+  "isHuman": true,
+  "confidence": 0.94,
+  "timestamp": 1706620800000
+}
+\end{verbatim}
+
+\section{PRIVACY CONSIDERATIONS}
+
+\subsection{Data Minimization}
+
+The system collects only data necessary for bot detection:
+\begin{itemize}
+    \item No personal identifiers (name, email, IP address in features)
+    \item No persistent tracking across sessions
+    \item No third-party data sharing
+\end{itemize}
+
+\subsection{Fingerprint Hashing}
+
+All fingerprints are hashed using SHA-256 before transmission:
+
+$$\text{hash} = \text{SHA256}(\text{fingerprint\_data})$$
+
+This enables uniqueness comparison without storing raw fingerprint data.
+
+\subsection{Privacy Mode}
+
+An optional privacy mode disables fingerprinting while maintaining behavioral analysis, accepting slightly reduced accuracy for enhanced privacy.
+

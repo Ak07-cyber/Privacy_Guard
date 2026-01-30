@@ -1,0 +1,129 @@
+% ============================================================================
+% CHAPTER 1: INTRODUCTION
+% ============================================================================
+
+\chapter{INTRODUCTION}
+
+\section{BACKGROUND}
+
+The digital transformation of government services and commercial enterprises has fundamentally changed how organizations interact with users online. Traditional methods of distinguishing human users from automated bots, particularly CAPTCHA (Completely Automated Public Turing test to tell Computers and Humans Apart), have become increasingly problematic due to poor user experience, accessibility issues, and declining effectiveness against sophisticated bots.
+
+CAPTCHA systems, introduced in the early 2000s, require users to complete visual or cognitive challenges to prove their humanity. However, advances in machine learning and computer vision have made many CAPTCHA variants solvable by bots, while simultaneously creating friction for legitimate users. Studies indicate that CAPTCHAs can take 10-30 seconds to complete and have failure rates of 15-30\% for legitimate users.
+
+Passive bot detection represents a paradigm shift in user verification. Instead of actively challenging users, passive systems analyze behavioral patterns, environmental characteristics, and interaction signatures to distinguish humans from bots without requiring explicit user action. This approach aligns with modern user experience principles while potentially providing stronger security through continuous, multi-dimensional analysis.
+
+The Ministry of Electronics and Information Technology (MeitY), Government of India, identified the need for such solutions for UIDAI (Unique Identification Authority of India) portals and other government digital services (Problem ID: 1672), recognizing that improved bot detection mechanisms are essential for protecting citizen data and ensuring service availability.
+
+\section{PROBLEM STATEMENT}
+
+Despite the ubiquity of bot protection solutions, several fundamental challenges persist:
+
+\begin{itemize}
+    \item \textbf{User Experience Degradation:} Traditional CAPTCHAs interrupt user workflows, causing frustration and abandonment. Studies show that CAPTCHAs can reduce conversion rates by 3-5\%.
+    
+    \item \textbf{Accessibility Barriers:} Visual and cognitive challenges exclude users with disabilities, violating accessibility standards and potentially legal requirements under the Rights of Persons with Disabilities Act, 2016.
+    
+    \item \textbf{Declining Effectiveness:} Machine learning advances have rendered many CAPTCHA types solvable by bots with 90\%+ accuracy, while human solving rates remain at 70-85\%.
+    
+    \item \textbf{Privacy Concerns:} Many bot detection services transmit extensive user data to third-party servers, raising data sovereignty and privacy compliance issues under the Digital Personal Data Protection Act, 2023.
+    
+    \item \textbf{Integration Complexity:} Existing solutions often require significant implementation effort and vendor lock-in.
+\end{itemize}
+
+\section{OBJECTIVES}
+
+\subsection{Primary Objective}
+
+To design and implement a machine learning-based passive bot detection system (PassiveGuard) that can replace traditional CAPTCHA mechanisms while providing superior user experience, accessibility, and security for web applications.
+
+\subsection{Sub-Objectives}
+
+\begin{enumerate}
+    \item Develop a lightweight JavaScript/TypeScript SDK for passive data collection in web browsers
+    \item Design and implement behavioral analysis algorithms for mouse movements, keyboard patterns, and scroll behavior
+    \item Create environmental fingerprinting mechanisms for browser and device characteristic analysis
+    \item Train and deploy an XGBoost-based machine learning model for bot detection classification
+    \item Build a FastAPI backend service for real-time verification with sub-100ms inference time
+    \item Ensure the solution is pluggable and can integrate with any web application
+    \item Achieve detection accuracy above 95\% while maintaining false positive rates below 5\%
+    \item Comply with privacy regulations by minimizing data collection and supporting privacy modes
+\end{enumerate}
+
+\section{SCOPE}
+
+\subsection{Target Applications}
+
+\textbf{Primary Use Cases:}
+\begin{itemize}
+    \item Government service portals (UIDAI, DigiLocker, etc.)
+    \item Financial services and banking applications
+    \item E-commerce platforms
+    \item Healthcare portals
+    \item Any web application requiring bot protection
+\end{itemize}
+
+\textbf{Supported Platforms:}
+\begin{itemize}
+    \item Modern web browsers (Chrome 80+, Firefox 75+, Safari 14+, Edge 80+)
+    \item Desktop and mobile web interfaces
+    \item Single Page Applications (SPAs) and traditional web applications
+\end{itemize}
+
+\subsection{Technical Scope}
+
+\begin{itemize}
+    \item Frontend SDK in TypeScript with React hooks support
+    \item Backend API in Python using FastAPI framework
+    \item Machine learning model using XGBoost classifier
+    \item RESTful API architecture for easy integration
+\end{itemize}
+
+\subsection{Exclusions}
+
+The following are excluded from the current scope:
+\begin{itemize}
+    \item Native mobile application SDKs (iOS/Android)
+    \item Advanced attack vectors (distributed bot networks, AI-powered mimicry)
+    \item Integration with specific identity management systems
+    \item Real-time model retraining capabilities
+\end{itemize}
+
+\section{PROPOSED SYSTEM}
+
+The proposed PassiveGuard system implements bot detection through passive analysis of user interactions and environmental characteristics. The system operates transparently, collecting and analyzing data without interrupting user workflows.
+
+\subsection{System Architecture}
+
+The system comprises three primary components:
+
+\begin{enumerate}
+    \item \textbf{Frontend SDK:} A TypeScript library that passively collects behavioral and environmental data from web browsers
+    \item \textbf{Backend API:} A FastAPI service that processes collected data and returns verification results
+    \item \textbf{ML Model:} An XGBoost classifier trained to distinguish human users from automated bots
+\end{enumerate}
+
+\subsection{Key Innovations}
+
+\begin{itemize}
+    \item \textbf{Passive Detection:} No user interaction required; analysis occurs transparently during normal browsing
+    
+    \item \textbf{Multi-Dimensional Analysis:} Combines behavioral patterns (mouse, keyboard, scroll) with environmental fingerprinting for robust detection
+    
+    \item \textbf{Privacy-First Design:} All fingerprints are hashed before transmission; no personally identifiable information is collected
+    
+    \item \textbf{Pluggable Architecture:} SDK can be integrated into any web application with minimal configuration
+    
+    \item \textbf{Real-Time Inference:} Sub-50ms model inference enables seamless user experience
+\end{itemize}
+
+\subsection{Expected Benefits}
+
+\begin{itemize}
+    \item \textbf{Improved User Experience:} Zero friction verification without puzzles or challenges
+    \item \textbf{Enhanced Accessibility:} No visual or cognitive challenges that exclude users with disabilities
+    \item \textbf{Better Security:} Continuous behavioral analysis harder to circumvent than point-in-time challenges
+    \item \textbf{Privacy Compliance:} Minimal data collection with hashed fingerprints
+    \item \textbf{Easy Integration:} Simple SDK integration with comprehensive documentation
+    \item \textbf{Cost Effective:} Open-source solution reducing dependency on commercial services
+\end{itemize}
+

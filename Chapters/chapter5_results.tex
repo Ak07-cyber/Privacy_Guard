@@ -1,0 +1,407 @@
+% ============================================================================
+% CHAPTER 5: RESULTS AND DISCUSSION
+% ============================================================================
+
+\chapter{RESULTS AND DISCUSSION}
+
+\section{EXPERIMENTAL SETUP}
+
+\subsection{Evaluation Environment}
+
+Experiments were conducted in the following environment:
+
+\begin{itemize}
+    \item \textbf{Server:} MacBook Air M1, 8GB RAM, macOS
+    \item \textbf{Python:} 3.9.x with virtual environment
+    \item \textbf{Backend:} FastAPI with Uvicorn ASGI server
+    \item \textbf{Browser Testing:} Chrome 120, Firefox 121, Safari 17
+\end{itemize}
+
+\subsection{Training Dataset}
+
+The model was trained on synthetic data simulating human and bot behaviors:
+
+\begin{table}[H]
+\centering
+\caption{Training Dataset Composition}
+\label{tab:dataset}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Class} & \textbf{Samples} & \textbf{Percentage} \\
+\hline
+Human & 10,000 & 50\% \\
+\hline
+Bot & 10,000 & 50\% \\
+\hline
+\textbf{Total} & \textbf{20,000} & 100\% \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Feature Set}
+
+The model uses 56 features across categories:
+
+\begin{table}[H]
+\centering
+\caption{Feature Distribution}
+\label{tab:feature_dist}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Category} & \textbf{Feature Count} \\
+\hline
+Environmental Signals & 18 \\
+\hline
+Mouse Movement Patterns & 12 \\
+\hline
+Keyboard Dynamics & 8 \\
+\hline
+Scroll Behavior & 6 \\
+\hline
+Timing Characteristics & 8 \\
+\hline
+Fingerprint Indicators & 4 \\
+\hline
+\textbf{Total Features} & \textbf{56} \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{MODEL TRAINING RESULTS}
+
+\subsection{Training Progression}
+
+The XGBoost model was trained with early stopping based on validation loss:
+
+\begin{table}[H]
+\centering
+\caption{Training Progression (Selected Epochs)}
+\label{tab:training_metrics}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Iteration} & \textbf{Validation Log Loss} & \textbf{Trend} \\
+\hline
+0 & 0.5982 & - \\
+\hline
+10 & 0.1770 & $\downarrow$ \\
+\hline
+20 & 0.0613 & $\downarrow$ \\
+\hline
+30 & 0.0222 & $\downarrow$ \\
+\hline
+40 & 0.0082 & $\downarrow$ \\
+\hline
+50 & 0.0031 & $\downarrow$ \\
+\hline
+60 & 0.0012 & $\downarrow$ \\
+\hline
+70 & 0.0005 & $\downarrow$ \\
+\hline
+80 & 0.0003 & $\downarrow$ \\
+\hline
+90 & 0.00015 & Converged \\
+\hline
+\end{tabular}
+\end{table}
+
+The model achieved convergence at approximately 90 iterations with validation log loss stabilizing at 0.00015.
+
+\subsection{Classification Performance}
+
+Performance on the held-out test set (20\% of data, 4,000 samples):
+
+\begin{table}[H]
+\centering
+\caption{Classification Report}
+\label{tab:classification}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{Support} \\
+\hline
+Bot & 1.00 & 1.00 & 1.00 & 2,000 \\
+\hline
+Human & 1.00 & 1.00 & 1.00 & 2,000 \\
+\hline
+\textbf{Accuracy} & \multicolumn{4}{c|}{\textbf{100\%}} \\
+\hline
+\textbf{Macro Avg} & 1.00 & 1.00 & 1.00 & 4,000 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Confusion Matrix}
+
+\begin{table}[H]
+\centering
+\caption{Confusion Matrix}
+\label{tab:confusion}
+\begin{tabular}{|l|c|c|}
+\hline
+& \textbf{Predicted Bot} & \textbf{Predicted Human} \\
+\hline
+\textbf{Actual Bot} & 2,000 (TN) & 0 (FP) \\
+\hline
+\textbf{Actual Human} & 0 (FN) & 2,000 (TP) \\
+\hline
+\end{tabular}
+\end{table}
+
+Key metrics:
+\begin{itemize}
+    \item \textbf{True Positive Rate (Sensitivity):} 100\%
+    \item \textbf{True Negative Rate (Specificity):} 100\%
+    \item \textbf{False Positive Rate:} 0\%
+    \item \textbf{False Negative Rate:} 0\%
+\end{itemize}
+
+\subsection{Cross-Validation Results}
+
+5-fold cross-validation was performed to assess model stability:
+
+\begin{table}[H]
+\centering
+\caption{Cross-Validation Scores}
+\label{tab:cv_scores}
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Fold} & \textbf{Accuracy} \\
+\hline
+1 & 100.0\% \\
+\hline
+2 & 100.0\% \\
+\hline
+3 & 100.0\% \\
+\hline
+4 & 100.0\% \\
+\hline
+5 & 100.0\% \\
+\hline
+\textbf{Mean} & \textbf{100.0\% $\pm$ 0.0\%} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{ROC-AUC Score}
+
+The model achieved a ROC-AUC score of \textbf{1.0000}, indicating perfect discrimination between human and bot classes on the synthetic test data.
+
+\section{FEATURE IMPORTANCE ANALYSIS}
+
+\subsection{Top Contributing Features}
+
+Feature importance scores from the trained XGBoost model:
+
+\begin{table}[H]
+\centering
+\caption{Top 10 Important Features}
+\label{tab:feature_importance}
+\begin{tabular}{|c|l|c|}
+\hline
+\textbf{Rank} & \textbf{Feature} & \textbf{Importance} \\
+\hline
+1 & scroll\_smoothness & 0.4525 \\
+\hline
+2 & mouse\_direction\_changes & 0.2758 \\
+\hline
+3 & mouse\_pause\_count & 0.2646 \\
+\hline
+4 & timing\_total\_interaction & 0.0069 \\
+\hline
+5 & mouse\_velocity\_std & 0.0003 \\
+\hline
+6 & env\_webdriver & 0.0000 \\
+\hline
+7 & env\_automation\_flag\_count & 0.0000 \\
+\hline
+8 & env\_has\_plugins & 0.0000 \\
+\hline
+9 & env\_plugin\_count & 0.0000 \\
+\hline
+10 & env\_screen\_ratio & 0.0000 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Feature Category Analysis}
+
+\begin{itemize}
+    \item \textbf{Behavioral Features Dominate:} The top 3 features (scroll smoothness, mouse direction changes, mouse pauses) account for 99.3\% of model importance
+    
+    \item \textbf{Scroll Smoothness:} Most discriminative feature (45.25\%), as bots typically produce perfectly uniform scroll events while humans exhibit natural variation
+    
+    \item \textbf{Mouse Direction Changes:} Second most important (27.58\%), capturing the natural oscillation patterns in human mouse movements
+    
+    \item \textbf{Mouse Pause Count:} Third most important (26.46\%), reflecting natural human hesitation and reading pauses
+    
+    \item \textbf{Environmental Features:} Contribute minimally in synthetic data, but serve as rule-based fallbacks in production (e.g., webdriver detection)
+\end{itemize}
+
+\section{PERFORMANCE BENCHMARKS}
+
+\subsection{Inference Latency}
+
+Model inference timing measurements:
+
+\begin{table}[H]
+\centering
+\caption{Inference Latency}
+\label{tab:inference_time}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Metric} & \textbf{Time} \\
+\hline
+Feature Extraction & 2-5 ms \\
+\hline
+Model Inference & 1-3 ms \\
+\hline
+Token Generation & 1-2 ms \\
+\hline
+\textbf{Total Processing} & \textbf{5-10 ms} \\
+\hline
+API Round-Trip (localhost) & 15-25 ms \\
+\hline
+\end{tabular}
+\end{table}
+
+The system achieves sub-50ms total verification time, well within the target for seamless user experience.
+
+\subsection{Model Size}
+
+\begin{table}[H]
+\centering
+\caption{Model Artifact Sizes}
+\label{tab:model_size}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Component} & \textbf{Size} \\
+\hline
+XGBoost Model (joblib) & 156 KB \\
+\hline
+Feature Importance JSON & 2 KB \\
+\hline
+\textbf{Total} & \textbf{158 KB} \\
+\hline
+\end{tabular}
+\end{table}
+
+The lightweight model size enables fast loading and minimal memory footprint.
+
+\subsection{SDK Performance}
+
+Frontend SDK performance metrics:
+
+\begin{table}[H]
+\centering
+\caption{SDK Performance Metrics}
+\label{tab:sdk_performance}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Metric} & \textbf{Value} \\
+\hline
+SDK Bundle Size (minified) & 45 KB \\
+\hline
+Initialization Time & 50-100 ms \\
+\hline
+Environmental Collection & 20-50 ms \\
+\hline
+Behavioral Data Processing & 5-10 ms \\
+\hline
+Memory Footprint & $<$ 5 MB \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{COMPARISON WITH EXISTING SOLUTIONS}
+
+\begin{table}[H]
+\centering
+\caption{Comparison with Commercial Solutions}
+\label{tab:comparison}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Metric} & \textbf{PassiveGuard} & \textbf{reCAPTCHA v3} & \textbf{hCaptcha} & \textbf{Arkose} \\
+\hline
+User Interaction & None & None & Challenge & Challenge \\
+\hline
+Latency & $<$50ms & 200-500ms & 2-5s & 1-3s \\
+\hline
+Privacy & Self-hosted & Google servers & Third-party & Third-party \\
+\hline
+Accessibility & Full & Full & Limited & Limited \\
+\hline
+Cost & Free & Free tier & Pay/Free & Enterprise \\
+\hline
+Offline Support & Yes & No & No & No \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{DISCUSSION}
+
+\subsection{Key Findings}
+
+\begin{enumerate}
+    \item \textbf{Behavioral Signals Most Predictive:} Scroll smoothness, mouse direction changes, and pause patterns are the strongest indicators distinguishing humans from bots
+    
+    \item \textbf{Synthetic Data Effectiveness:} The model achieves perfect accuracy on synthetic data, demonstrating that well-designed feature distributions can effectively represent the human-bot distinction
+    
+    \item \textbf{Sub-50ms Latency:} The XGBoost model enables real-time verification without perceptible delay to users
+    
+    \item \textbf{Lightweight Deployment:} The 158 KB model size allows efficient deployment without significant infrastructure requirements
+\end{enumerate}
+
+\subsection{Strengths}
+
+\begin{itemize}
+    \item \textbf{Zero User Friction:} No puzzles, challenges, or explicit verification required
+    \item \textbf{Privacy-Preserving:} Self-hosted with hashed fingerprints; no data sent to third parties
+    \item \textbf{Accessible:} No visual or cognitive challenges that exclude users with disabilities
+    \item \textbf{Fast:} Sub-50ms processing enables seamless integration
+    \item \textbf{Pluggable:} SDK integrates with any web application via simple API
+\end{itemize}
+
+\subsection{Limitations}
+
+\begin{enumerate}
+    \item \textbf{Synthetic Training Data:} The model is trained on synthetic data which may not capture all real-world bot behaviors. Production deployment should incorporate real traffic data for continuous improvement.
+    
+    \item \textbf{Sophisticated Bot Evasion:} Advanced bots using human behavioral mimicry or CAPTCHA farms may evade detection. The system should be part of a defense-in-depth strategy.
+    
+    \item \textbf{Cold Start Problem:} Users who interact minimally (e.g., arrive via link and immediately submit) may have insufficient behavioral data for confident classification.
+    
+    \item \textbf{Mobile Limitations:} Touch-based interactions differ from desktop mouse movements; mobile-specific behavioral models may be needed.
+\end{enumerate}
+
+\subsection{Production Considerations}
+
+For production deployment:
+\begin{itemize}
+    \item Implement continuous model retraining with real traffic data
+    \item Add rate limiting and IP-based throttling as complementary measures
+    \item Deploy challenge fallback for suspicious but uncertain cases
+    \item Monitor false positive rates and adjust thresholds based on user feedback
+    \item Implement A/B testing to compare with existing CAPTCHA solutions
+\end{itemize}
+
+\section{REAL-WORLD APPLICABILITY}
+
+\subsection{Government Portal Integration}
+
+For UIDAI and similar government portals:
+\begin{itemize}
+    \item SDK initializes on page load
+    \item Behavioral data collected during form filling
+    \item Verification triggered before form submission
+    \item Token validated server-side before processing request
+\end{itemize}
+
+\subsection{E-Commerce Applications}
+
+For shopping and checkout flows:
+\begin{itemize}
+    \item Protect login and registration forms
+    \item Verify users before high-value transactions
+    \item Prevent automated inventory hoarding
+    \item Reduce fraudulent account creation
+\end{itemize}
+

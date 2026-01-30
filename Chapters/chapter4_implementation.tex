@@ -1,0 +1,608 @@
+% ============================================================================
+% CHAPTER 4: IMPLEMENTATION
+% ============================================================================
+
+\chapter{IMPLEMENTATION}
+
+\section{DEVELOPMENT ENVIRONMENT}
+
+\subsection{Development Tools}
+
+\begin{table}[H]
+\centering
+\caption{Development Tools and Versions}
+\label{tab:dev_tools}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Tool} & \textbf{Version} & \textbf{Purpose} \\
+\hline
+Node.js & 18.x+ & JavaScript runtime \\
+\hline
+TypeScript & 5.3.0 & Type-safe JavaScript \\
+\hline
+Python & 3.10+ & Backend runtime \\
+\hline
+FastAPI & 0.109.0 & Web framework \\
+\hline
+XGBoost & 2.0.3 & ML classifier \\
+\hline
+scikit-learn & 1.4.0 & ML utilities \\
+\hline
+Pydantic & 2.5.3 & Data validation \\
+\hline
+React & 17.0+ & UI framework (peer) \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Project Structure}
+
+\begin{verbatim}
+passiveguard/
+├── frontend/                    # TypeScript SDK
+│   ├── src/
+│   │   ├── types/              # Type definitions
+│   │   │   └── index.ts
+│   │   ├── collectors/         # Data collectors
+│   │   │   ├── environmental.ts
+│   │   │   └── behavioral.ts
+│   │   ├── utils/              # Utilities
+│   │   │   ├── api.ts
+│   │   │   └── fingerprint.ts
+│   │   ├── core/               # Core SDK
+│   │   │   └── PassiveGuard.ts
+│   │   ├── hooks/              # React hooks
+│   │   │   └── usePassiveGuard.ts
+│   │   └── index.ts            # Entry point
+│   ├── package.json
+│   └── tsconfig.json
+├── backend/                     # Python API
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── models.py       # Pydantic schemas
+│   │   │   └── routes.py       # API endpoints
+│   │   ├── core/
+│   │   │   ├── config.py       # Configuration
+│   │   │   └── security.py     # JWT handling
+│   │   ├── features/
+│   │   │   └── extractor.py    # Feature extraction
+│   │   ├── ml/
+│   │   │   └── detector.py     # Bot detector
+│   │   └── main.py             # FastAPI app
+│   ├── ml_training/
+│   │   └── train_model.py      # Model training
+│   ├── models/                  # Trained models
+│   │   └── bot_detector.joblib
+│   └── requirements.txt
+└── demo/
+    └── index.html              # Demo application
+\end{verbatim}
+
+\section{FRONTEND SDK IMPLEMENTATION}
+
+\subsection{Type Definitions}
+
+The SDK defines comprehensive TypeScript interfaces for type safety:
+
+\begin{verbatim}
+// Core configuration interface
+interface PassiveGuardConfig {
+  apiEndpoint: string;
+  siteKey: string;
+  debug?: boolean;
+  collectionTimeout?: number;
+  enableBehavioral?: boolean;
+  enableEnvironmental?: boolean;
+  privacyMode?: boolean;
+  onChallenge?: (challenge: Challenge) => Promise<ChallengeResponse>;
+  onVerify?: (result: VerificationResult) => void;
+}
+
+// Verification result interface
+interface VerificationResult {
+  isHuman: boolean;
+  confidence: number;
+  riskScore: number;
+  token: string;
+  timestamp: number;
+  challengeRequired: boolean;
+  challenge?: Challenge;
+  metadata: VerificationMetadata;
+}
+\end{verbatim}
+
+\subsection{Environmental Collector}
+
+The EnvironmentalCollector class gathers browser and device characteristics:
+
+\begin{verbatim}
+class EnvironmentalCollector {
+  async collect(): Promise<EnvironmentalData> {
+    const [canvasFp, webglFp, audioFp] = await Promise.all([
+      this.getCanvasFingerprint(),
+      this.getWebGLFingerprint(),
+      this.getAudioFingerprint()
+    ]);
+    
+    return {
+      browser: this.getBrowserInfo(),
+      screen: this.getScreenInfo(),
+      hardware: this.getHardwareInfo(),
+      features: this.getFeatureDetection(),
+      fingerprints: {
+        canvas: this.hashFingerprint(canvasFp),
+        webgl: this.hashFingerprint(webglFp),
+        audio: this.hashFingerprint(audioFp)
+      },
+      timezone: this.getTimezoneInfo()
+    };
+  }
+}
+\end{verbatim}
+
+\subsection{Canvas Fingerprinting Implementation}
+
+\begin{verbatim}
+private getCanvasFingerprint(): string {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+
+  canvas.width = 200;
+  canvas.height = 50;
+
+  // Draw text with specific styling
+  ctx.textBaseline = 'top';
+  ctx.font = '14px Arial';
+  ctx.fillStyle = '#f60';
+  ctx.fillRect(125, 1, 62, 20);
+
+  ctx.fillStyle = '#069';
+  ctx.fillText('PassiveGuard', 2, 15);
+  
+  ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+  ctx.fillText('Bot Detection', 4, 17);
+
+  return canvas.toDataURL();
+}
+\end{verbatim}
+
+\subsection{Behavioral Collector}
+
+The BehavioralCollector tracks user interactions:
+
+\begin{verbatim}
+class BehavioralCollector {
+  private mouseMovements: MouseEvent[] = [];
+  private keyPresses: KeyboardEvent[] = [];
+  private scrollEvents: ScrollEvent[] = [];
+  
+  start(): void {
+    document.addEventListener('mousemove', this.handleMouseMove);
+    document.addEventListener('keydown', this.handleKeyDown);
+    document.addEventListener('keyup', this.handleKeyUp);
+    document.addEventListener('scroll', this.handleScroll);
+  }
+  
+  private handleMouseMove = (e: MouseEvent): void => {
+    this.mouseMovements.push({
+      x: e.clientX,
+      y: e.clientY,
+      timestamp: Date.now()
+    });
+    // Keep last 1000 movements
+    if (this.mouseMovements.length > 1000) {
+      this.mouseMovements.shift();
+    }
+  };
+  
+  getData(): BehavioralData {
+    return {
+      mouse: this.calculateMouseStats(),
+      keyboard: this.calculateKeyboardStats(),
+      scroll: this.calculateScrollStats(),
+      timing: this.calculateTimingStats()
+    };
+  }
+}
+\end{verbatim}
+
+\subsection{Mouse Statistics Calculation}
+
+\begin{verbatim}
+private calculateMouseStats(): MouseStats {
+  const movements = this.mouseMovements;
+  if (movements.length < 2) return this.getEmptyMouseStats();
+
+  const velocities: number[] = [];
+  let totalDistance = 0;
+  let directionChanges = 0;
+  let pauseCount = 0;
+
+  for (let i = 1; i < movements.length; i++) {
+    const dx = movements[i].x - movements[i-1].x;
+    const dy = movements[i].y - movements[i-1].y;
+    const dt = movements[i].timestamp - movements[i-1].timestamp;
+    
+    const distance = Math.sqrt(dx*dx + dy*dy);
+    totalDistance += distance;
+    
+    if (dt > 0) {
+      velocities.push(distance / dt);
+    }
+    
+    if (dt > 100) pauseCount++;  // Pause > 100ms
+  }
+
+  return {
+    totalDistance,
+    averageVelocity: mean(velocities),
+    velocityStd: std(velocities),
+    maxVelocity: Math.max(...velocities),
+    directionChanges,
+    pauseCount
+  };
+}
+\end{verbatim}
+
+\subsection{PassiveGuard Core Class}
+
+The main SDK class orchestrates collection and verification:
+
+\begin{verbatim}
+class PassiveGuard {
+  private config: PassiveGuardConfig;
+  private environmentalCollector: EnvironmentalCollector;
+  private behavioralCollector: BehavioralCollector;
+  private apiClient: ApiClient;
+  
+  async init(): Promise<void> {
+    if (this.config.enableBehavioral) {
+      this.behavioralCollector.start();
+    }
+    if (this.config.enableEnvironmental) {
+      this.environmentalData = await 
+        this.environmentalCollector.collect();
+    }
+    this.initialized = true;
+  }
+  
+  async verify(): Promise<VerificationResult> {
+    const request: VerificationRequest = {
+      siteKey: this.config.siteKey,
+      environmental: this.environmentalData,
+      behavioral: this.behavioralCollector.getData(),
+      requestId: this.generateRequestId(),
+      timestamp: Date.now()
+    };
+    
+    return this.apiClient.verify(request);
+  }
+}
+\end{verbatim}
+
+\subsection{React Hook Implementation}
+
+\begin{verbatim}
+function usePassiveGuard(options: UsePassiveGuardOptions) {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [result, setResult] = useState<VerificationResult | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  
+  const guardRef = useRef<PassiveGuard | null>(null);
+  
+  useEffect(() => {
+    guardRef.current = new PassiveGuard({
+      apiEndpoint: options.apiEndpoint,
+      siteKey: options.siteKey,
+      ...options
+    });
+    
+    guardRef.current.init()
+      .then(() => setIsInitialized(true))
+      .catch(setError);
+      
+    return () => guardRef.current?.destroy();
+  }, [options.apiEndpoint, options.siteKey]);
+  
+  const verify = useCallback(async () => {
+    setIsVerifying(true);
+    try {
+      const result = await guardRef.current!.verify();
+      setResult(result);
+      return result;
+    } finally {
+      setIsVerifying(false);
+    }
+  }, []);
+  
+  return { isInitialized, isVerifying, result, error, verify };
+}
+\end{verbatim}
+
+\section{BACKEND API IMPLEMENTATION}
+
+\subsection{FastAPI Application}
+
+\begin{verbatim}
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI(
+    title="PassiveGuard API",
+    description="ML-based passive bot detection",
+    version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+@app.on_event("startup")
+async def startup():
+    # Load ML model
+    global detector
+    detector = BotDetector()
+\end{verbatim}
+
+\subsection{Pydantic Models}
+
+\begin{verbatim}
+class EnvironmentalData(BaseModel):
+    browser: BrowserInfo
+    screen: ScreenInfo
+    hardware: HardwareInfo
+    features: FeatureDetection
+    fingerprints: Fingerprints
+    timezone: TimezoneInfo
+
+class BehavioralData(BaseModel):
+    mouse: MouseData
+    keyboard: KeyboardData
+    scroll: ScrollData
+    timing: TimingData
+
+class VerificationRequest(BaseModel):
+    siteKey: str
+    environmental: EnvironmentalData
+    behavioral: BehavioralData
+    requestId: str
+    timestamp: int
+
+class VerificationResponse(BaseModel):
+    isHuman: bool
+    confidence: float
+    riskScore: float
+    token: str
+    timestamp: int
+    challengeRequired: bool
+\end{verbatim}
+
+\subsection{Verification Endpoint}
+
+\begin{verbatim}
+@router.post("/verify", response_model=VerificationResponse)
+async def verify(request: VerificationRequest):
+    # Extract features
+    features = extractor.extract(
+        request.environmental,
+        request.behavioral
+    )
+    
+    # Get prediction
+    prediction = detector.predict(features)
+    
+    # Generate token
+    token = create_verification_token(
+        is_human=prediction.is_human,
+        confidence=prediction.confidence,
+        request_id=request.requestId
+    )
+    
+    return VerificationResponse(
+        isHuman=prediction.is_human,
+        confidence=prediction.confidence,
+        riskScore=prediction.risk_score,
+        token=token,
+        timestamp=int(time.time() * 1000),
+        challengeRequired=prediction.needs_challenge
+    )
+\end{verbatim}
+
+\subsection{Feature Extractor}
+
+\begin{verbatim}
+class FeatureExtractor:
+    def extract(self, env: EnvironmentalData, 
+                beh: BehavioralData) -> np.ndarray:
+        features = []
+        
+        # Environmental features
+        features.extend([
+            env.screen.width / 1920,  # Normalized
+            env.screen.height / 1080,
+            env.hardware.deviceMemory or 4,
+            env.hardware.hardwareConcurrency or 4,
+            1 if env.features.webgl else 0,
+            1 if env.browser.webdriver else 0,
+            # ... more features
+        ])
+        
+        # Behavioral features
+        mouse = beh.mouse.movementStats
+        features.extend([
+            mouse.totalDistance,
+            mouse.averageVelocity,
+            mouse.velocityStd,
+            mouse.directionChanges,
+            mouse.pauseCount,
+            # ... more features
+        ])
+        
+        return np.array(features).reshape(1, -1)
+\end{verbatim}
+
+\section{ML MODEL TRAINING}
+
+\subsection{Synthetic Data Generation}
+
+Training data is generated by simulating human and bot behaviors:
+
+\begin{verbatim}
+def generate_human_sample():
+    return {
+        'mouse_velocity_mean': np.random.normal(150, 50),
+        'mouse_velocity_std': np.random.normal(80, 30),
+        'mouse_direction_changes': np.random.randint(10, 100),
+        'mouse_pause_count': np.random.randint(5, 30),
+        'keyboard_dwell_mean': np.random.normal(100, 30),
+        'scroll_smoothness': np.random.uniform(0.6, 1.0),
+        'timing_first_interaction': np.random.normal(2000, 1000),
+        'env_webdriver': 0,
+        # ... more features
+    }
+
+def generate_bot_sample():
+    return {
+        'mouse_velocity_mean': np.random.uniform(0, 50),
+        'mouse_velocity_std': np.random.uniform(0, 10),
+        'mouse_direction_changes': np.random.randint(0, 5),
+        'mouse_pause_count': np.random.randint(0, 2),
+        'keyboard_dwell_mean': np.random.uniform(50, 80),
+        'scroll_smoothness': np.random.uniform(0.0, 0.3),
+        'timing_first_interaction': np.random.uniform(0, 500),
+        'env_webdriver': np.random.choice([0, 1], p=[0.3, 0.7]),
+        # ... more features
+    }
+\end{verbatim}
+
+\subsection{Model Training}
+
+\begin{verbatim}
+def train_model():
+    # Generate training data
+    human_samples = [generate_human_sample() for _ in range(10000)]
+    bot_samples = [generate_bot_sample() for _ in range(10000)]
+    
+    X = pd.DataFrame(human_samples + bot_samples)
+    y = np.array([1] * 10000 + [0] * 10000)  # 1=human, 0=bot
+    
+    # Train-test split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+    
+    # Train XGBoost
+    model = XGBClassifier(
+        n_estimators=100,
+        max_depth=6,
+        learning_rate=0.1,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        eval_metric='logloss',
+        early_stopping_rounds=10
+    )
+    
+    model.fit(
+        X_train, y_train,
+        eval_set=[(X_test, y_test)],
+        verbose=True
+    )
+    
+    # Save model
+    joblib.dump(model, 'models/bot_detector.joblib')
+\end{verbatim}
+
+\section{SECURITY IMPLEMENTATION}
+
+\subsection{JWT Token Generation}
+
+\begin{verbatim}
+def create_verification_token(is_human: bool, 
+                              confidence: float,
+                              request_id: str) -> str:
+    payload = {
+        "sub": request_id,
+        "is_human": is_human,
+        "confidence": confidence,
+        "iat": datetime.utcnow(),
+        "exp": datetime.utcnow() + timedelta(minutes=5)
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+def validate_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        return {"valid": True, **payload}
+    except jwt.ExpiredSignatureError:
+        return {"valid": False, "error": "Token expired"}
+    except jwt.InvalidTokenError:
+        return {"valid": False, "error": "Invalid token"}
+\end{verbatim}
+
+\subsection{Fingerprint Hashing}
+
+\begin{verbatim}
+// Frontend - TypeScript
+private hashFingerprint(data: string): string {
+  // Using SubtleCrypto for SHA-256
+  const encoder = new TextEncoder();
+  const dataBuffer = encoder.encode(data);
+  
+  return crypto.subtle.digest('SHA-256', dataBuffer)
+    .then(hash => {
+      return Array.from(new Uint8Array(hash))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    });
+}
+\end{verbatim}
+
+\section{DEMO APPLICATION}
+
+The demo application provides a working example of SDK integration:
+
+\begin{verbatim}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PassiveGuard Demo</title>
+</head>
+<body>
+  <div id="app">
+    <h1>PassiveGuard Bot Detection Demo</h1>
+    <div id="status">Initializing...</div>
+    <button id="verify-btn" disabled>Verify Human</button>
+    <div id="result"></div>
+  </div>
+  
+  <script type="module">
+    import { PassiveGuard } from './passiveguard-sdk.js';
+    
+    const guard = new PassiveGuard({
+      apiEndpoint: 'http://localhost:8000',
+      siteKey: 'demo_site',
+      debug: true
+    });
+    
+    await guard.init();
+    document.getElementById('status').textContent = 'Ready';
+    document.getElementById('verify-btn').disabled = false;
+    
+    document.getElementById('verify-btn').onclick = async () => {
+      const result = await guard.verify();
+      document.getElementById('result').innerHTML = `
+        <p>Human: ${result.isHuman}</p>
+        <p>Confidence: ${(result.confidence * 100).toFixed(1)}%</p>
+      `;
+    };
+  </script>
+</body>
+</html>
+\end{verbatim}
+

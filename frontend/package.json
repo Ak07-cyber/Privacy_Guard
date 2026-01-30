@@ -1,0 +1,39 @@
+{
+  "name": "passiveguard-sdk",
+  "version": "1.0.0",
+  "description": "ML-based passive bot detection SDK - CAPTCHA replacement",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src/**/*.ts",
+    "test": "jest"
+  },
+  "keywords": [
+    "captcha",
+    "bot-detection",
+    "security",
+    "ml",
+    "passive-verification"
+  ],
+  "author": "PassiveGuard Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^19.2.10",
+    "react": "^19.2.4",
+    "typescript": "^5.3.0"
+  },
+  "peerDependencies": {
+    "react": ">=17.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/passiveguard/sdk"
+  }
+}

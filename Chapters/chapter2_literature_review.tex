@@ -1,0 +1,201 @@
+% ============================================================================
+% CHAPTER 2: LITERATURE REVIEW
+% ============================================================================
+
+\chapter{LITERATURE REVIEW}
+
+\section{EVOLUTION OF BOT DETECTION}
+
+Bot detection has evolved significantly since the introduction of the first CAPTCHA systems in 2000. This chapter reviews the progression from traditional challenge-response mechanisms to modern machine learning-based passive detection approaches.
+
+\subsection{Traditional CAPTCHA Systems}
+
+The original CAPTCHA, introduced by von Ahn et al. (2003), presented distorted text images that were presumed easy for humans but difficult for machines to recognize. These systems were based on the assumption that Optical Character Recognition (OCR) technology was insufficiently advanced to decode deliberately obscured characters.
+
+Subsequent iterations included:
+\begin{itemize}
+    \item \textbf{Image-based CAPTCHAs:} Requiring users to identify objects in images (Google reCAPTCHA v2)
+    \item \textbf{Audio CAPTCHAs:} For accessibility, presenting spoken characters
+    \item \textbf{Mathematical CAPTCHAs:} Simple arithmetic problems
+    \item \textbf{Puzzle CAPTCHAs:} Drag-and-drop or rotation challenges
+\end{itemize}
+
+However, Bursztein et al. (2014) demonstrated that machine learning algorithms could solve text CAPTCHAs with over 90\% accuracy, fundamentally undermining their security premise.
+
+\subsection{Behavioral Analysis Approaches}
+
+Research shifted toward behavioral analysis as a more robust detection mechanism. Chu et al. (2018) demonstrated that mouse movement patterns exhibit distinctive characteristics that differentiate human users from automated scripts. Their study identified key features including:
+\begin{itemize}
+    \item Movement trajectory curvature
+    \item Velocity variations and acceleration patterns
+    \item Pause frequency and duration
+    \item Direction change frequency
+\end{itemize}
+
+Shen et al. (2019) extended this work to keyboard dynamics, showing that typing rhythms, key press durations, and inter-key intervals form unique behavioral signatures that are difficult for bots to replicate.
+
+\section{MACHINE LEARNING FOR BOT DETECTION}
+
+\subsection{Feature Engineering Approaches}
+
+Early machine learning approaches for bot detection relied heavily on hand-crafted features. Iliou et al. (2019) proposed a comprehensive feature set including:
+\begin{itemize}
+    \item Request timing patterns
+    \item Session duration statistics
+    \item Navigation path analysis
+    \item Form interaction metrics
+\end{itemize}
+
+Their Random Forest classifier achieved 94.2\% accuracy on a dataset of 50,000 sessions.
+
+\subsection{Deep Learning Methods}
+
+Recent research has explored deep learning for automated feature extraction. Wei et al. (2020) applied Recurrent Neural Networks (RNNs) to sequential behavioral data, achieving 96.8\% detection accuracy. However, their approach required significant computational resources unsuitable for real-time web applications.
+
+Zhang et al. (2021) proposed a lightweight CNN architecture for mouse trajectory analysis, reducing inference time to under 10ms while maintaining 93.5\% accuracy.
+
+\subsection{Ensemble Methods}
+
+Ensemble methods have shown particular promise for bot detection. Chen and Guestrin (2016) introduced XGBoost, a gradient boosting framework that has become widely adopted for tabular data classification tasks. Key advantages include:
+\begin{itemize}
+    \item Handling of missing values
+    \item Built-in regularization to prevent overfitting
+    \item Fast training and inference
+    \item Native support for feature importance analysis
+\end{itemize}
+
+Prokhorenkova et al. (2018) introduced CatBoost, optimized for categorical features, while Ke et al. (2017) proposed LightGBM with gradient-based one-side sampling.
+
+\section{BROWSER FINGERPRINTING}
+
+Browser fingerprinting collects device and browser characteristics to create unique identifiers without cookies. Laperdrix et al. (2020) conducted a comprehensive study of fingerprinting techniques:
+
+\subsection{Canvas Fingerprinting}
+
+Canvas fingerprinting exploits variations in how browsers render graphics. Mowery and Shacham (2012) demonstrated that rendering the same image produces pixel-level differences across devices due to:
+\begin{itemize}
+    \item GPU hardware variations
+    \item Graphics driver implementations
+    \item Font rendering engines
+    \item Anti-aliasing algorithms
+\end{itemize}
+
+\subsection{WebGL Fingerprinting}
+
+WebGL fingerprinting extracts GPU characteristics including:
+\begin{itemize}
+    \item Renderer and vendor strings
+    \item Supported extensions
+    \item Parameter ranges and limits
+    \item Shader precision formats
+\end{itemize}
+
+Cao et al. (2017) showed WebGL fingerprinting achieves 99.24\% uniqueness in identifying devices.
+
+\subsection{Audio Fingerprinting}
+
+Englehardt and Narayanan (2016) introduced audio fingerprinting using the AudioContext API. Processing audio through oscillators and analyzers produces device-specific output due to hardware and software variations.
+
+\section{PRIVACY-PRESERVING TECHNIQUES}
+
+\subsection{Data Minimization}
+
+The principle of data minimization, emphasized in GDPR and India's DPDP Act 2023, requires collecting only necessary data. Passive bot detection systems must balance detection accuracy with privacy preservation.
+
+\subsection{Hashing and Anonymization}
+
+One-way hashing of fingerprints enables device identification without storing raw data. Cryptographic hash functions (SHA-256) transform fingerprint data into fixed-length representations that cannot be reversed to recover original values.
+
+\subsection{Differential Privacy}
+
+Dwork et al. (2014) introduced differential privacy as a mathematical framework for privacy-preserving data analysis. While computationally intensive, differential privacy guarantees bound the information leakage about any individual record.
+
+\section{WEB APPLICATION SECURITY}
+
+\subsection{Bot Attack Vectors}
+
+Modern bots employ sophisticated techniques to evade detection:
+\begin{itemize}
+    \item \textbf{Headless Browsers:} Automated Chrome/Firefox instances (Puppeteer, Selenium)
+    \item \textbf{Browser Automation:} Human-like interaction simulation
+    \item \textbf{Residential Proxies:} IP rotation through legitimate residential connections
+    \item \textbf{CAPTCHA Farms:} Human workers solving challenges for bots
+\end{itemize}
+
+\subsection{Detection Evasion}
+
+Bot operators actively work to evade detection. Vastel et al. (2020) catalogued evasion techniques including:
+\begin{itemize}
+    \item Randomized timing patterns
+    \item Spoofed browser fingerprints
+    \item Mouse movement simulation
+    \item JavaScript execution mimicry
+\end{itemize}
+
+\section{GAPS IN EXISTING KNOWLEDGE}
+
+\begin{table}[H]
+\centering
+\caption{Research Gaps and Project Contributions}
+\label{tab:gaps_summary}
+\begin{tabular}{|p{5cm}|p{6cm}|}
+\hline
+\textbf{Gap} & \textbf{How PassiveGuard Addresses} \\
+\hline
+CAPTCHA user experience issues & Zero-friction passive detection \\
+\hline
+Accessibility barriers & No visual/cognitive challenges required \\
+\hline
+Privacy concerns with third-party services & Self-hosted with hashed fingerprints \\
+\hline
+Complex integration requirements & Pluggable SDK with simple API \\
+\hline
+High latency cloud solutions & Local inference in sub-50ms \\
+\hline
+Lack of open-source alternatives & Fully open-source implementation \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{PROJECT CONTRIBUTIONS}
+
+Based on the literature review, this project contributes:
+
+\begin{enumerate}
+    \item \textbf{Unified SDK:} Comprehensive TypeScript SDK combining behavioral and environmental analysis
+    
+    \item \textbf{Privacy-First Architecture:} All fingerprints hashed; no PII collection; optional privacy mode
+    
+    \item \textbf{XGBoost Classification:} Lightweight, interpretable model with feature importance analysis
+    
+    \item \textbf{Real-Time Processing:} Sub-50ms inference suitable for production web applications
+    
+    \item \textbf{Pluggable Design:} Easy integration with any web application through standard APIs
+    
+    \item \textbf{Open Source:} Complete implementation available for audit, modification, and deployment
+\end{enumerate}
+
+\section{THEORETICAL FRAMEWORK}
+
+The PassiveGuard system is grounded in the following theoretical principles:
+
+\subsection{Behavioral Biometrics}
+
+Human computer interaction produces consistent behavioral patterns that form implicit biometric signatures. These patterns are:
+\begin{itemize}
+    \item Difficult to replicate programmatically
+    \item Consistent within individuals
+    \item Distinctive across users
+    \item Observable without active participation
+\end{itemize}
+
+\subsection{Statistical Learning Theory}
+
+The bot detection problem is formulated as a binary classification task. Given feature vector $\mathbf{x} \in \mathbb{R}^n$ representing collected signals, the model learns a function $f: \mathbb{R}^n \rightarrow \{0, 1\}$ that predicts whether the session is human (1) or bot (0).
+
+The XGBoost model minimizes the regularized objective:
+
+$$\mathcal{L}(\phi) = \sum_{i=1}^{n} l(y_i, \hat{y}_i) + \sum_{k=1}^{K} \Omega(f_k)$$
+
+where $l$ is the loss function (binary cross-entropy), and $\Omega$ is the regularization term preventing overfitting.
+
