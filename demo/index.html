@@ -1,471 +1,657 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PassiveGuard Demo - Bot Detection</title>
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-dark: #4338ca;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --bg: #f9fafb;
-            --card-bg: #ffffff;
-            --text: #1f2937;
-            --text-light: #6b7280;
-            --border: #e5e7eb;
+      :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --bg: #f9fafb;
+        --card-bg: #ffffff;
+        --text: #1f2937;
+        --text-light: #6b7280;
+        --border: #e5e7eb;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      header h1 {
+        font-size: 2.5rem;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+      }
+
+      header p {
+        color: var(--text-light);
+        font-size: 1.1rem;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin: 0.25rem;
+      }
+
+      .badge-primary {
+        background: #eef2ff;
+        color: var(--primary);
+      }
+      .badge-success {
+        background: #d1fae5;
+        color: var(--success);
+      }
+      .badge-danger {
+        background: #fee2e2;
+        color: var(--danger);
+      }
+      .badge-warning {
+        background: #fef3c7;
+        color: var(--warning);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border);
+      }
+
+      .card h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .card h2 .icon {
+        width: 24px;
+        height: 24px;
+      }
+
+      .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .form-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-dark);
+      }
+
+      .btn-primary:disabled {
+        background: #a5b4fc;
+        cursor: not-allowed;
+      }
+
+      .btn-secondary {
+        background: var(--border);
+        color: var(--text);
+      }
+
+      .btn-secondary:hover {
+        background: #d1d5db;
+      }
+
+      .status-panel {
+        background: #f3f4f6;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .status-panel h3 {
+        font-size: 0.875rem;
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+      }
+
+      .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .status-item:last-child {
+        border-bottom: none;
+      }
+
+      .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+      }
+
+      .status-indicator.active {
+        background: var(--success);
+      }
+      .status-indicator.inactive {
+        background: #9ca3af;
+      }
+      .status-indicator.warning {
+        background: var(--warning);
+      }
+      .status-indicator.danger {
+        background: var(--danger);
+      }
+
+      .result-panel {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        display: none;
+      }
+
+      .result-panel.show {
+        display: block;
+      }
+
+      .result-panel.human {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        border: 1px solid var(--success);
+      }
+
+      .result-panel.bot {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border: 3px solid var(--danger);
+        animation: botPulse 1s ease-in-out infinite;
+      }
+
+      .result-panel.suspicious {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 3px solid var(--warning);
+        animation: suspiciousPulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes suspiciousPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+        50% { box-shadow: 0 0 15px 8px rgba(245, 158, 11, 0.2); }
+      }
+
+      .suspicious-alert {
+        background: var(--warning);
+        color: #1f2937;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        animation: alertBlink 0.8s ease-in-out 2;
+      }
+
+      @keyframes botPulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        50% {
+          box-shadow: 0 0 20px 10px rgba(239, 68, 68, 0.2);
         }
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
+      .bot-alert {
+        background: var(--danger);
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        animation: alertBlink 0.5s ease-in-out 3;
+      }
+
+      @keyframes alertBlink {
+        0%,
+        100% {
+          opacity: 1;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
+        50% {
+          opacity: 0.5;
         }
+      }
 
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
+      .result-panel h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .result-panel .score {
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+
+      .progress-bar {
+        height: 8px;
+        background: var(--border);
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+      }
+
+      .progress-bar .fill {
+        height: 100%;
+        transition: width 0.3s ease;
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+
+      .metric-item {
+        text-align: center;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 0.5rem;
+      }
+
+      .metric-item .value {
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+
+      .metric-item .label {
+        font-size: 0.75rem;
+        color: var(--text-light);
+      }
+
+      .data-preview {
+        background: #1f2937;
+        color: #f9fafb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        font-family: monospace;
+        font-size: 0.75rem;
+        max-height: 200px;
+        overflow-y: auto;
+        margin-top: 1rem;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ffffff40;
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
         }
+      }
 
-        header h1 {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
+      .features-list {
+        list-style: none;
+        padding: 0;
+      }
 
-        header p {
-            color: var(--text-light);
-            font-size: 1.1rem;
-        }
+      .features-list li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
 
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            margin: 0.25rem;
-        }
+      .features-list li:last-child {
+        border-bottom: none;
+      }
 
-        .badge-primary { background: #eef2ff; color: var(--primary); }
-        .badge-success { background: #d1fae5; color: var(--success); }
-        .badge-danger { background: #fee2e2; color: var(--danger); }
-        .badge-warning { background: #fef3c7; color: var(--warning); }
+      .features-list .check {
+        color: var(--success);
+      }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border);
-        }
-
-        .card h2 {
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card h2 .icon {
-            width: 24px;
-            height: 24px;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-primary:disabled {
-            background: #a5b4fc;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            background: var(--border);
-            color: var(--text);
-        }
-
-        .btn-secondary:hover {
-            background: #d1d5db;
-        }
-
-        .status-panel {
-            background: #f3f4f6;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .status-panel h3 {
-            font-size: 0.875rem;
-            color: var(--text-light);
-            margin-bottom: 0.5rem;
-        }
-
-        .status-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .status-item:last-child {
-            border-bottom: none;
-        }
-
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 0.5rem;
-        }
-
-        .status-indicator.active { background: var(--success); }
-        .status-indicator.inactive { background: #9ca3af; }
-        .status-indicator.warning { background: var(--warning); }
-        .status-indicator.danger { background: var(--danger); }
-
-        .result-panel {
-            margin-top: 1.5rem;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            display: none;
-        }
-
-        .result-panel.show { display: block; }
-
-        .result-panel.human {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            border: 1px solid var(--success);
-        }
-
-        .result-panel.bot {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            border: 1px solid var(--danger);
-        }
-
-        .result-panel h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .result-panel .score {
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background: var(--border);
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 0.5rem 0;
-        }
-
-        .progress-bar .fill {
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 0.75rem;
-            margin-top: 1rem;
-        }
-
-        .metric-item {
-            text-align: center;
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 0.5rem;
-        }
-
-        .metric-item .value {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .metric-item .label {
-            font-size: 0.75rem;
-            color: var(--text-light);
-        }
-
-        .data-preview {
-            background: #1f2937;
-            color: #f9fafb;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            font-family: monospace;
-            font-size: 0.75rem;
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 1rem;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ffffff40;
-            border-top-color: #ffffff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .features-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .features-list li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .features-list li:last-child {
-            border-bottom: none;
-        }
-
-        .features-list .check {
-            color: var(--success);
-        }
-
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-light);
-            font-size: 0.875rem;
-        }
+      footer {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+        font-size: 0.875rem;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>🛡️ PassiveGuard</h1>
-            <p>ML-Based Passive Bot Detection - CAPTCHA Replacement</p>
-            <div style="margin-top: 1rem;">
-                <span class="badge badge-primary">TypeScript SDK</span>
-                <span class="badge badge-primary">FastAPI Backend</span>
-                <span class="badge badge-primary">XGBoost ML</span>
-                <span class="badge badge-success">Privacy-Focused</span>
+      <header>
+        <h1>🛡️ PassiveGuard</h1>
+        <p>ML-Based Passive Bot Detection - CAPTCHA Replacement</p>
+        <div style="margin-top: 1rem">
+          <span class="badge badge-primary">TypeScript SDK</span>
+          <span class="badge badge-primary">FastAPI Backend</span>
+          <span class="badge badge-primary">XGBoost ML</span>
+          <span class="badge badge-success">Privacy-Focused</span>
+        </div>
+      </header>
+
+      <div class="grid">
+        <!-- Demo Form -->
+        <div class="card">
+          <h2>
+            <svg
+              class="icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              ></path>
+            </svg>
+            Demo Form
+          </h2>
+          <p style="color: var(--text-light); margin-bottom: 1rem">
+            Interact with this form naturally. PassiveGuard will analyze your
+            behavior.
+          </p>
+
+          <form id="demo-form">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" placeholder="Enter your name" />
             </div>
-        </header>
-
-        <div class="grid">
-            <!-- Demo Form -->
-            <div class="card">
-                <h2>
-                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    Demo Form
-                </h2>
-                <p style="color: var(--text-light); margin-bottom: 1rem;">
-                    Interact with this form naturally. PassiveGuard will analyze your behavior.
-                </p>
-
-                <form id="demo-form">
-                    <div class="form-group">
-                        <label for="name">Full Name</label>
-                        <input type="text" id="name" placeholder="Enter your name">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" placeholder="Enter your email">
-                    </div>
-                    <div class="form-group">
-                        <label for="message">Message</label>
-                        <textarea id="message" rows="3" placeholder="Type a message..."></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary" id="submit-btn">
-                        <span id="btn-text">Verify & Submit</span>
-                        <span id="btn-loading" class="loading" style="display: none;"></span>
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="resetDemo()" style="margin-left: 0.5rem;">
-                        Reset
-                    </button>
-                </form>
-
-                <!-- Result Panel -->
-                <div id="result-panel" class="result-panel">
-                    <h3 id="result-title">Verification Result</h3>
-                    <div class="score" id="result-score">--</div>
-                    <div class="progress-bar">
-                        <div class="fill" id="result-bar" style="width: 0%; background: var(--success);"></div>
-                    </div>
-                    <div class="metrics-grid" id="result-metrics"></div>
-                </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" placeholder="Enter your email" />
             </div>
-
-            <!-- Data Collection Status -->
-            <div class="card">
-                <h2>
-                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                    Data Collection Status
-                </h2>
-
-                <div class="status-panel">
-                    <h3>Environmental Data</h3>
-                    <div class="status-item">
-                        <span><span class="status-indicator active"></span> Browser Info</span>
-                        <span class="badge badge-success">Collected</span>
-                    </div>
-                    <div class="status-item">
-                        <span><span class="status-indicator active"></span> Screen Info</span>
-                        <span class="badge badge-success">Collected</span>
-                    </div>
-                    <div class="status-item">
-                        <span><span class="status-indicator active"></span> Hardware Info</span>
-                        <span class="badge badge-success">Collected</span>
-                    </div>
-                    <div class="status-item">
-                        <span><span class="status-indicator active"></span> WebGL Fingerprint</span>
-                        <span class="badge badge-success">Collected</span>
-                    </div>
-                </div>
-
-                <div class="status-panel">
-                    <h3>Behavioral Data (Live)</h3>
-                    <div class="status-item">
-                        <span><span id="mouse-indicator" class="status-indicator inactive"></span> Mouse Movements</span>
-                        <span id="mouse-count" class="badge badge-primary">0</span>
-                    </div>
-                    <div class="status-item">
-                        <span><span id="key-indicator" class="status-indicator inactive"></span> Key Presses</span>
-                        <span id="key-count" class="badge badge-primary">0</span>
-                    </div>
-                    <div class="status-item">
-                        <span><span id="scroll-indicator" class="status-indicator inactive"></span> Scroll Events</span>
-                        <span id="scroll-count" class="badge badge-primary">0</span>
-                    </div>
-                    <div class="status-item">
-                        <span><span id="click-indicator" class="status-indicator inactive"></span> Clicks</span>
-                        <span id="click-count" class="badge badge-primary">0</span>
-                    </div>
-                </div>
-
-                <button class="btn btn-secondary" onclick="toggleDataPreview()" style="width: 100%;">
-                    Show Collected Data
-                </button>
-                <div id="data-preview" class="data-preview" style="display: none;">
-                    <pre id="data-json"></pre>
-                </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea
+                id="message"
+                rows="3"
+                placeholder="Type a message..."
+              ></textarea>
             </div>
+            <button type="submit" class="btn btn-primary" id="submit-btn">
+              <span id="btn-text">Verify & Submit</span>
+              <span
+                id="btn-loading"
+                class="loading"
+                style="display: none"
+              ></span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="resetDemo()"
+              style="margin-left: 0.5rem"
+            >
+              Reset
+            </button>
+          </form>
 
-            <!-- Features -->
-            <div class="card">
-                <h2>
-                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                    </svg>
-                    Detection Features
-                </h2>
-                <ul class="features-list">
-                    <li><span class="check">✓</span> Browser fingerprinting (hashed for privacy)</li>
-                    <li><span class="check">✓</span> WebGL/Canvas fingerprinting</li>
-                    <li><span class="check">✓</span> Mouse movement pattern analysis</li>
-                    <li><span class="check">✓</span> Keystroke dynamics analysis</li>
-                    <li><span class="check">✓</span> Scroll behavior detection</li>
-                    <li><span class="check">✓</span> Timing pattern analysis</li>
-                    <li><span class="check">✓</span> Automation flag detection</li>
-                    <li><span class="check">✓</span> WebDriver detection</li>
-                    <li><span class="check">✓</span> Headless browser detection</li>
-                    <li><span class="check">✓</span> XGBoost ML classification</li>
-                </ul>
+          <!-- Result Panel -->
+          <div id="result-panel" class="result-panel">
+            <h3 id="result-title">Verification Result</h3>
+            <div class="score" id="result-score">--</div>
+            <div class="progress-bar">
+              <div
+                class="fill"
+                id="result-bar"
+                style="width: 0%; background: var(--success)"
+              ></div>
             </div>
+            <div class="metrics-grid" id="result-metrics"></div>
+          </div>
+        </div>
 
-            <!-- API Integration -->
-            <div class="card">
-                <h2>
-                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                    </svg>
-                    Integration Code
-                </h2>
-                <div class="data-preview" style="display: block;">
-                    <pre><code>// Install SDK
+        <!-- Data Collection Status -->
+        <div class="card">
+          <h2>
+            <svg
+              class="icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              ></path>
+            </svg>
+            Data Collection Status
+          </h2>
+
+          <div class="status-panel">
+            <h3>Environmental Data</h3>
+            <div class="status-item">
+              <span
+                ><span class="status-indicator active"></span> Browser
+                Info</span
+              >
+              <span class="badge badge-success">Collected</span>
+            </div>
+            <div class="status-item">
+              <span
+                ><span class="status-indicator active"></span> Screen Info</span
+              >
+              <span class="badge badge-success">Collected</span>
+            </div>
+            <div class="status-item">
+              <span
+                ><span class="status-indicator active"></span> Hardware
+                Info</span
+              >
+              <span class="badge badge-success">Collected</span>
+            </div>
+            <div class="status-item">
+              <span
+                ><span class="status-indicator active"></span> WebGL
+                Fingerprint</span
+              >
+              <span class="badge badge-success">Collected</span>
+            </div>
+          </div>
+
+          <div class="status-panel">
+            <h3>Behavioral Data (Live)</h3>
+            <div class="status-item">
+              <span
+                ><span
+                  id="mouse-indicator"
+                  class="status-indicator inactive"
+                ></span>
+                Mouse Movements</span
+              >
+              <span id="mouse-count" class="badge badge-primary">0</span>
+            </div>
+            <div class="status-item">
+              <span
+                ><span
+                  id="key-indicator"
+                  class="status-indicator inactive"
+                ></span>
+                Key Presses</span
+              >
+              <span id="key-count" class="badge badge-primary">0</span>
+            </div>
+            <div class="status-item">
+              <span
+                ><span
+                  id="scroll-indicator"
+                  class="status-indicator inactive"
+                ></span>
+                Scroll Events</span
+              >
+              <span id="scroll-count" class="badge badge-primary">0</span>
+            </div>
+            <div class="status-item">
+              <span
+                ><span
+                  id="click-indicator"
+                  class="status-indicator inactive"
+                ></span>
+                Clicks</span
+              >
+              <span id="click-count" class="badge badge-primary">0</span>
+            </div>
+          </div>
+
+          <button
+            class="btn btn-secondary"
+            onclick="toggleDataPreview()"
+            style="width: 100%"
+          >
+            Show Collected Data
+          </button>
+          <div id="data-preview" class="data-preview" style="display: none">
+            <pre id="data-json"></pre>
+          </div>
+        </div>
+
+        <!-- Features -->
+        <div class="card">
+          <h2>
+            <svg
+              class="icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              ></path>
+            </svg>
+            Detection Features
+          </h2>
+          <ul class="features-list">
+            <li>
+              <span class="check">✓</span> Browser fingerprinting (hashed for
+              privacy)
+            </li>
+            <li><span class="check">✓</span> WebGL/Canvas fingerprinting</li>
+            <li>
+              <span class="check">✓</span> Mouse movement pattern analysis
+            </li>
+            <li><span class="check">✓</span> Keystroke dynamics analysis</li>
+            <li><span class="check">✓</span> Scroll behavior detection</li>
+            <li><span class="check">✓</span> Timing pattern analysis</li>
+            <li><span class="check">✓</span> Automation flag detection</li>
+            <li><span class="check">✓</span> WebDriver detection</li>
+            <li><span class="check">✓</span> Headless browser detection</li>
+            <li><span class="check">✓</span> XGBoost ML classification</li>
+          </ul>
+        </div>
+
+        <!-- API Integration -->
+        <div class="card">
+          <h2>
+            <svg
+              class="icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+              ></path>
+            </svg>
+            Integration Code
+          </h2>
+          <div class="data-preview" style="display: block">
+            <pre><code>// Install SDK
 npm install passiveguard-sdk
 
 // Initialize
@@ -486,254 +672,346 @@ if (result.isHuman) {
   // Proceed with form submission
   submitForm(result.token);
 }</code></pre>
-                </div>
-            </div>
+          </div>
         </div>
+      </div>
 
-        <footer>
-            <p>PassiveGuard - ML-Based Passive Bot Detection</p>
-            <p style="margin-top: 0.5rem;">
-                Built for UIDAI Problem Statement 1672 | Privacy-Focused | No PII Collection
-            </p>
-        </footer>
+      <footer>
+        <p>PassiveGuard - ML-Based Passive Bot Detection</p>
+        <p style="margin-top: 0.5rem">
+          Built for UIDAI Problem Statement 1672 | Privacy-Focused | No PII
+          Collection
+        </p>
+      </footer>
     </div>
 
     <script>
-        // Simulated PassiveGuard SDK for demo
-        class PassiveGuardDemo {
-            constructor() {
-                this.mouseMovements = [];
-                this.keyPresses = [];
-                this.scrollEvents = [];
-                this.clicks = [];
-                this.startTime = Date.now();
-                this.lastMouseTime = 0;
-                this.setupListeners();
-            }
-
-            setupListeners() {
-                document.addEventListener('mousemove', (e) => this.trackMouse(e));
-                document.addEventListener('keydown', (e) => this.trackKey(e));
-                document.addEventListener('scroll', () => this.trackScroll());
-                document.addEventListener('click', (e) => this.trackClick(e));
-            }
-
-            trackMouse(e) {
-                const now = Date.now();
-                if (now - this.lastMouseTime < 50) return;
-                
-                this.mouseMovements.push({
-                    x: e.clientX,
-                    y: e.clientY,
-                    timestamp: now,
-                });
-                this.lastMouseTime = now;
-                this.updateUI();
-            }
-
-            trackKey(e) {
-                this.keyPresses.push({
-                    key: 'masked',
-                    timestamp: Date.now(),
-                });
-                this.updateUI();
-            }
-
-            trackScroll() {
-                this.scrollEvents.push({
-                    y: window.scrollY,
-                    timestamp: Date.now(),
-                });
-                this.updateUI();
-            }
-
-            trackClick(e) {
-                this.clicks.push({
-                    x: e.clientX,
-                    y: e.clientY,
-                    timestamp: Date.now(),
-                });
-                this.updateUI();
-            }
-
-            updateUI() {
-                document.getElementById('mouse-count').textContent = this.mouseMovements.length;
-                document.getElementById('key-count').textContent = this.keyPresses.length;
-                document.getElementById('scroll-count').textContent = this.scrollEvents.length;
-                document.getElementById('click-count').textContent = this.clicks.length;
-
-                // Update indicators
-                document.getElementById('mouse-indicator').className = 
-                    'status-indicator ' + (this.mouseMovements.length > 0 ? 'active' : 'inactive');
-                document.getElementById('key-indicator').className = 
-                    'status-indicator ' + (this.keyPresses.length > 0 ? 'active' : 'inactive');
-                document.getElementById('scroll-indicator').className = 
-                    'status-indicator ' + (this.scrollEvents.length > 0 ? 'active' : 'inactive');
-                document.getElementById('click-indicator').className = 
-                    'status-indicator ' + (this.clicks.length > 0 ? 'active' : 'inactive');
-            }
-
-            calculateScore() {
-                let score = 0.5;
-                
-                // Mouse movement analysis
-                if (this.mouseMovements.length > 20) score += 0.1;
-                if (this.mouseMovements.length > 50) score += 0.1;
-                
-                // Keyboard activity
-                if (this.keyPresses.length > 5) score += 0.1;
-                
-                // Time spent
-                const timeSpent = Date.now() - this.startTime;
-                if (timeSpent > 3000) score += 0.1;
-                if (timeSpent > 10000) score += 0.05;
-                
-                // Movement variability (not perfectly straight)
-                if (this.mouseMovements.length > 10) {
-                    const variations = this.calculateMovementVariation();
-                    if (variations > 10) score += 0.05;
-                }
-                
-                return Math.min(0.98, Math.max(0.1, score));
-            }
-
-            calculateMovementVariation() {
-                if (this.mouseMovements.length < 3) return 0;
-                let changes = 0;
-                for (let i = 2; i < this.mouseMovements.length; i++) {
-                    const dx1 = this.mouseMovements[i-1].x - this.mouseMovements[i-2].x;
-                    const dy1 = this.mouseMovements[i-1].y - this.mouseMovements[i-2].y;
-                    const dx2 = this.mouseMovements[i].x - this.mouseMovements[i-1].x;
-                    const dy2 = this.mouseMovements[i].y - this.mouseMovements[i-1].y;
-                    if (Math.sign(dx1) !== Math.sign(dx2) || Math.sign(dy1) !== Math.sign(dy2)) {
-                        changes++;
-                    }
-                }
-                return changes;
-            }
-
-            getCollectedData() {
-                return {
-                    environmental: {
-                        userAgent: navigator.userAgent,
-                        platform: navigator.platform,
-                        language: navigator.language,
-                        screenWidth: screen.width,
-                        screenHeight: screen.height,
-                        colorDepth: screen.colorDepth,
-                        hardwareConcurrency: navigator.hardwareConcurrency,
-                        deviceMemory: navigator.deviceMemory || 'N/A',
-                    },
-                    behavioral: {
-                        mouseMovements: this.mouseMovements.length,
-                        keyPresses: this.keyPresses.length,
-                        scrollEvents: this.scrollEvents.length,
-                        clicks: this.clicks.length,
-                        timeSpent: Date.now() - this.startTime,
-                    },
-                };
-            }
-
-            async verify() {
-                // Simulate API call
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                const score = this.calculateScore();
-                return {
-                    isHuman: score > 0.5,
-                    confidence: score,
-                    riskScore: 1 - score,
-                    token: 'pg_' + Math.random().toString(36).substring(2),
-                };
-            }
-
-            reset() {
-                this.mouseMovements = [];
-                this.keyPresses = [];
-                this.scrollEvents = [];
-                this.clicks = [];
-                this.startTime = Date.now();
-                this.updateUI();
-            }
+      // Simulated PassiveGuard SDK for demo
+      class PassiveGuardDemo {
+        constructor() {
+          this.mouseMovements = [];
+          this.keyPresses = [];
+          this.scrollEvents = [];
+          this.clicks = [];
+          this.startTime = Date.now();
+          this.lastMouseTime = 0;
+          this.setupListeners();
         }
 
-        // Initialize
-        const guard = new PassiveGuardDemo();
+        setupListeners() {
+          document.addEventListener("mousemove", (e) => this.trackMouse(e));
+          document.addEventListener("keydown", (e) => this.trackKey(e));
+          document.addEventListener("scroll", () => this.trackScroll());
+          document.addEventListener("click", (e) => this.trackClick(e));
+        }
 
-        // Form submission
-        document.getElementById('demo-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const btn = document.getElementById('submit-btn');
-            const btnText = document.getElementById('btn-text');
-            const btnLoading = document.getElementById('btn-loading');
-            
-            btn.disabled = true;
-            btnText.style.display = 'none';
-            btnLoading.style.display = 'inline-block';
-            
-            try {
-                const result = await guard.verify();
-                showResult(result);
-            } catch (err) {
-                alert('Verification failed: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btnText.style.display = 'inline';
-                btnLoading.style.display = 'none';
+        trackMouse(e) {
+          const now = Date.now();
+          if (now - this.lastMouseTime < 50) return;
+
+          this.mouseMovements.push({
+            x: e.clientX,
+            y: e.clientY,
+            timestamp: now,
+          });
+          this.lastMouseTime = now;
+          this.updateUI();
+        }
+
+        trackKey(e) {
+          this.keyPresses.push({
+            key: "masked",
+            timestamp: Date.now(),
+          });
+          this.updateUI();
+        }
+
+        trackScroll() {
+          this.scrollEvents.push({
+            y: window.scrollY,
+            timestamp: Date.now(),
+          });
+          this.updateUI();
+        }
+
+        trackClick(e) {
+          this.clicks.push({
+            x: e.clientX,
+            y: e.clientY,
+            timestamp: Date.now(),
+          });
+          this.updateUI();
+        }
+
+        updateUI() {
+          document.getElementById("mouse-count").textContent =
+            this.mouseMovements.length;
+          document.getElementById("key-count").textContent =
+            this.keyPresses.length;
+          document.getElementById("scroll-count").textContent =
+            this.scrollEvents.length;
+          document.getElementById("click-count").textContent =
+            this.clicks.length;
+
+          // Update indicators
+          document.getElementById("mouse-indicator").className =
+            "status-indicator " +
+            (this.mouseMovements.length > 0 ? "active" : "inactive");
+          document.getElementById("key-indicator").className =
+            "status-indicator " +
+            (this.keyPresses.length > 0 ? "active" : "inactive");
+          document.getElementById("scroll-indicator").className =
+            "status-indicator " +
+            (this.scrollEvents.length > 0 ? "active" : "inactive");
+          document.getElementById("click-indicator").className =
+            "status-indicator " +
+            (this.clicks.length > 0 ? "active" : "inactive");
+        }
+
+        calculateScore() {
+          let score = 0.5;
+
+          // Mouse movement analysis
+          if (this.mouseMovements.length > 20) score += 0.1;
+          if (this.mouseMovements.length > 50) score += 0.1;
+
+          // Keyboard activity
+          if (this.keyPresses.length > 5) score += 0.1;
+
+          // Time spent
+          const timeSpent = Date.now() - this.startTime;
+          if (timeSpent > 3000) score += 0.1;
+          if (timeSpent > 10000) score += 0.05;
+
+          // Movement variability (not perfectly straight)
+          if (this.mouseMovements.length > 10) {
+            const variations = this.calculateMovementVariation();
+            if (variations > 10) score += 0.05;
+          }
+
+          return Math.min(0.98, Math.max(0.1, score));
+        }
+
+        calculateMovementVariation() {
+          if (this.mouseMovements.length < 3) return 0;
+          let changes = 0;
+          for (let i = 2; i < this.mouseMovements.length; i++) {
+            const dx1 =
+              this.mouseMovements[i - 1].x - this.mouseMovements[i - 2].x;
+            const dy1 =
+              this.mouseMovements[i - 1].y - this.mouseMovements[i - 2].y;
+            const dx2 = this.mouseMovements[i].x - this.mouseMovements[i - 1].x;
+            const dy2 = this.mouseMovements[i].y - this.mouseMovements[i - 1].y;
+            if (
+              Math.sign(dx1) !== Math.sign(dx2) ||
+              Math.sign(dy1) !== Math.sign(dy2)
+            ) {
+              changes++;
             }
+          }
+          return changes;
+        }
+
+        getCollectedData() {
+          return {
+            environmental: {
+              userAgent: navigator.userAgent,
+              platform: navigator.platform,
+              language: navigator.language,
+              screenWidth: screen.width,
+              screenHeight: screen.height,
+              colorDepth: screen.colorDepth,
+              hardwareConcurrency: navigator.hardwareConcurrency,
+              deviceMemory: navigator.deviceMemory || "N/A",
+            },
+            behavioral: {
+              mouseMovements: this.mouseMovements.length,
+              keyPresses: this.keyPresses.length,
+              scrollEvents: this.scrollEvents.length,
+              clicks: this.clicks.length,
+              timeSpent: Date.now() - this.startTime,
+            },
+          };
+        }
+
+        async verify() {
+          // Simulate API call
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          const score = this.calculateScore();
+          return {
+            isHuman: score > 0.5,
+            confidence: score,
+            riskScore: 1 - score,
+            token: "pg_" + Math.random().toString(36).substring(2),
+          };
+        }
+
+        reset() {
+          this.mouseMovements = [];
+          this.keyPresses = [];
+          this.scrollEvents = [];
+          this.clicks = [];
+          this.startTime = Date.now();
+          this.updateUI();
+        }
+      }
+
+      // Initialize
+      const guard = new PassiveGuardDemo();
+
+      // Form submission
+      document
+        .getElementById("demo-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const btn = document.getElementById("submit-btn");
+          const btnText = document.getElementById("btn-text");
+          const btnLoading = document.getElementById("btn-loading");
+
+          btn.disabled = true;
+          btnText.style.display = "none";
+          btnLoading.style.display = "inline-block";
+
+          try {
+            const result = await guard.verify();
+            showResult(result);
+          } catch (err) {
+            alert("Verification failed: " + err.message);
+          } finally {
+            btn.disabled = false;
+            btnText.style.display = "inline";
+            btnLoading.style.display = "none";
+          }
         });
 
-        function showResult(result) {
-            const panel = document.getElementById('result-panel');
-            const title = document.getElementById('result-title');
-            const score = document.getElementById('result-score');
-            const bar = document.getElementById('result-bar');
-            const metrics = document.getElementById('result-metrics');
-            
-            panel.className = 'result-panel show ' + (result.isHuman ? 'human' : 'bot');
-            title.textContent = result.isHuman ? '✓ Human Verified' : '⚠ Bot Detected';
-            score.textContent = (result.confidence * 100).toFixed(1) + '%';
-            bar.style.width = (result.confidence * 100) + '%';
-            bar.style.background = result.isHuman ? 'var(--success)' : 'var(--danger)';
-            
-            metrics.innerHTML = `
-                <div class="metric-item">
-                    <div class="value">${result.isHuman ? 'Yes' : 'No'}</div>
-                    <div class="label">Is Human</div>
-                </div>
-                <div class="metric-item">
-                    <div class="value">${(result.confidence * 100).toFixed(1)}%</div>
-                    <div class="label">Confidence</div>
-                </div>
-                <div class="metric-item">
-                    <div class="value">${(result.riskScore * 100).toFixed(1)}%</div>
-                    <div class="label">Risk Score</div>
-                </div>
-                <div class="metric-item">
-                    <div class="value">${result.token.substring(0, 10)}...</div>
-                    <div class="label">Token</div>
-                </div>
-            `;
+      function showResult(result) {
+        const panel = document.getElementById("result-panel");
+        const title = document.getElementById("result-title");
+        const score = document.getElementById("result-score");
+        const bar = document.getElementById("result-bar");
+        const metrics = document.getElementById("result-metrics");
+
+        // Detection tiers:
+        // Below 70% = BOT (forced to 20%)
+        // 70-80% = SUSPICIOUS
+        // Above 80% = HUMAN
+        const confidence = result.confidence;
+        const isBot = confidence < 0.70 || !result.isHuman;
+        const isSuspicious = !isBot && confidence >= 0.70 && confidence < 0.80;
+        const isHuman = confidence >= 0.80 && result.isHuman;
+        
+        let displayScore, panelClass, scoreColor, barColor;
+        
+        if (isBot) {
+          displayScore = 0.20;
+          panelClass = "bot";
+          scoreColor = "var(--danger)";
+          barColor = "var(--danger)";
+        } else if (isSuspicious) {
+          displayScore = confidence;
+          panelClass = "suspicious";
+          scoreColor = "var(--warning)";
+          barColor = "var(--warning)";
+        } else {
+          displayScore = confidence;
+          panelClass = "human";
+          scoreColor = "var(--success)";
+          barColor = "var(--success)";
         }
 
-        function toggleDataPreview() {
-            const preview = document.getElementById('data-preview');
-            const json = document.getElementById('data-json');
-            
-            if (preview.style.display === 'none') {
-                preview.style.display = 'block';
-                json.textContent = JSON.stringify(guard.getCollectedData(), null, 2);
-            } else {
-                preview.style.display = 'none';
-            }
+        panel.className = "result-panel show " + panelClass;
+
+        if (isBot) {
+          title.innerHTML = '🚨 <span style="color: var(--danger); font-size: 2rem;">BOT DETECTED</span> 🚨';
+        } else if (isSuspicious) {
+          title.innerHTML = '⚠️ <span style="color: var(--warning); font-size: 2rem;">SUSPICIOUS ACTIVITY</span> ⚠️';
+        } else {
+          title.textContent = "✓ Human Verified";
         }
 
-        function resetDemo() {
-            guard.reset();
-            document.getElementById('demo-form').reset();
-            document.getElementById('result-panel').className = 'result-panel';
+        score.textContent = (displayScore * 100).toFixed(1) + "%";
+        score.style.color = scoreColor;
+        bar.style.width = displayScore * 100 + "%";
+        bar.style.background = barColor;
+
+        let alertHtml = "";
+        if (isBot) {
+          alertHtml = `
+            <div class="bot-alert">
+              🤖 AUTOMATED ACCESS DETECTED - SCORE FORCED TO 20% 🤖
+            </div>
+          `;
+        } else if (isSuspicious) {
+          alertHtml = `
+            <div class="suspicious-alert">
+              ⚠️ UNUSUAL BEHAVIOR PATTERNS DETECTED - REQUIRES REVIEW ⚠️
+            </div>
+          `;
         }
+
+        let statusText, statusIcon;
+        if (isBot) {
+          statusText = "🤖 NO";
+          statusIcon = "var(--danger)";
+        } else if (isSuspicious) {
+          statusText = "⚠️ MAYBE";
+          statusIcon = "var(--warning)";
+        } else {
+          statusText = "✅ Yes";
+          statusIcon = "var(--success)";
+        }
+
+        metrics.innerHTML = alertHtml + `
+          <div class="metric-item">
+            <div class="value" style="color: ${statusIcon}">${statusText}</div>
+            <div class="label">Is Human</div>
+          </div>
+          <div class="metric-item">
+            <div class="value" style="color: ${scoreColor}">${(displayScore * 100).toFixed(1)}%</div>
+            <div class="label">Confidence</div>
+          </div>
+          <div class="metric-item">
+            <div class="value">${((1 - displayScore) * 100).toFixed(1)}%</div>
+            <div class="label">Risk Score</div>
+          </div>
+          <div class="metric-item">
+            <div class="value">${result.token ? result.token.substring(0, 10) + "..." : "N/A"}</div>
+            <div class="label">Token</div>
+          </div>
+          ${isBot ? `
+            <div class="metric-item" style="grid-column: span 2; background: rgba(239, 68, 68, 0.2);">
+              <div class="value" style="color: var(--danger)">Original: ${(confidence * 100).toFixed(1)}%</div>
+              <div class="label">Score before aggressive flagging (< 70% = BOT)</div>
+            </div>
+          ` : ""}
+          ${isSuspicious ? `
+            <div class="metric-item" style="grid-column: span 2; background: rgba(245, 158, 11, 0.2);">
+              <div class="value" style="color: var(--warning)">Score: ${(confidence * 100).toFixed(1)}% (70-80% = Suspicious)</div>
+              <div class="label">Additional verification may be required</div>
+            </div>
+          ` : ""}
+        `;
+      }
+
+      function toggleDataPreview() {
+        const preview = document.getElementById("data-preview");
+        const json = document.getElementById("data-json");
+
+        if (preview.style.display === "none") {
+          preview.style.display = "block";
+          json.textContent = JSON.stringify(guard.getCollectedData(), null, 2);
+        } else {
+          preview.style.display = "none";
+        }
+      }
+
+      function resetDemo() {
+        guard.reset();
+        document.getElementById("demo-form").reset();
+        document.getElementById("result-panel").className = "result-panel";
+      }
     </script>
-</body>
+  </body>
 </html>
